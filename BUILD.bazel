@@ -24,8 +24,8 @@ genrule(
     name = "dtc_lexer_srcs",
     srcs = ["dtc-lexer.l"],
     outs = ["dtc-lexer.lex.c"],
-    tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex"],
     cmd = "$(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex) -o $@ $<",
+    tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex"],
 )
 
 genrule(
@@ -35,10 +35,10 @@ genrule(
         "dtc-parser.c",
         "dtc-parser.h",
     ],
+    cmd = "$(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison) -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
     tools = [
         "@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison",
     ],
-    cmd = "$(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison) -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
 )
 
 UTILS = [
@@ -55,7 +55,6 @@ genrule(
         "version_gen.h.in",
     ],
     outs = ["version_gen.h"],
-    tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed"],
     cmd = """
         # Avoid accessing host tools.
         export PATH=
@@ -65,6 +64,7 @@ genrule(
         $(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed) \\
             s/@VCS_TAG@/$${version}/ $(location version_gen.h.in) > $@
     """,
+    tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed"],
 )
 
 cc_binary(
@@ -85,6 +85,9 @@ cc_binary(
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
+    visibility = [
+        "@kleaf//build/kernel:__subpackages__",
+    ],
     deps = [":libfdt"],
 )
 
