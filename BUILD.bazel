@@ -1,4 +1,3 @@
-load("@kleaf//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
@@ -21,21 +20,25 @@ cc_library(
     includes = ["libfdt"],
 )
 
-hermetic_genrule(
+genrule(
     name = "dtc_lexer_srcs",
     srcs = ["dtc-lexer.l"],
     outs = ["dtc-lexer.lex.c"],
-    cmd = "flex -o $@ $<",
+    tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex"],
+    cmd = "$(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex) -o $@ $<",
 )
 
-hermetic_genrule(
+genrule(
     name = "dtc_parser_srcs",
     srcs = ["dtc-parser.y"],
     outs = [
         "dtc-parser.c",
         "dtc-parser.h",
     ],
-    cmd = "bison -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
+    tools = [
+        "@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison",
+    ],
+    cmd = "$(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison) -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
 )
 
 UTILS = [
@@ -44,7 +47,7 @@ UTILS = [
     ":version_gen_header",
 ]
 
-hermetic_genrule(
+genrule(
     name = "version_gen_header",
     srcs = [
         "METADATA",
@@ -52,9 +55,15 @@ hermetic_genrule(
         "version_gen.h.in",
     ],
     outs = ["version_gen.h"],
+    tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed"],
     cmd = """
-      version="$$(sed -f $(location METADATA_version.sed) -n $(location METADATA))-Android-build"
-      sed s/@VCS_TAG@/$${version}/ $(location version_gen.h.in) > $@
+        # Avoid accessing host tools.
+        export PATH=
+        version="$$($(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed) \\
+            -f $(location METADATA_version.sed) \\
+            -n $(location METADATA))-Android-build"
+        $(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed) \\
+            s/@VCS_TAG@/$${version}/ $(location version_gen.h.in) > $@
     """,
 )
 
