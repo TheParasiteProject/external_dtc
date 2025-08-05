@@ -24,7 +24,7 @@ genrule(
     name = "dtc_lexer_srcs",
     srcs = ["dtc-lexer.l"],
     outs = ["dtc-lexer.lex.c"],
-    cmd = "$(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex) -o $@ $<",
+    cmd = "export PATH= ; $(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex) -o $@ $<",
     tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex"],
 )
 
@@ -35,7 +35,7 @@ genrule(
         "dtc-parser.c",
         "dtc-parser.h",
     ],
-    cmd = "$(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison) -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
+    cmd = "export PATH= ; $(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison) -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
     tools = [
         "@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison",
     ],
