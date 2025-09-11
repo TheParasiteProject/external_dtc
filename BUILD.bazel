@@ -128,5 +128,8 @@ cc_binary(
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
+    visibility = [
+        "@kleaf//build/kernel:__subpackages__",
+    ],
     deps = [":libfdt"],
 )
